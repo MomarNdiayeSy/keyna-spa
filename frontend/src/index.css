@@ -1,0 +1,81 @@
+/* frontend/src/index.css */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Variables CSS personnalisées */
+:root {
+  --color-primary: #8A6E4B;
+  --color-primary-light: #A98E6B;
+  --color-primary-dark: #6A4E2B;
+  --color-secondary: #345557;
+  --color-accent: #D6AD60;
+}
+
+/* Styles de base */
+body {
+  @apply font-sans text-gray-800 antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-serif;
+}
+
+/* Classes utilitaires personnalisées */
+@layer components {
+  .btn {
+    @apply px-6 py-2 rounded-full transition duration-300 font-medium text-center;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark;
+  }
+
+  .btn-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white;
+  }
+
+  .container {
+    @apply mx-auto px-4;
+  }
+
+  .section {
+    @apply py-16;
+  }
+
+  .section-title {
+    @apply font-serif text-3xl md:text-4xl font-semibold mb-8 text-center;
+  }
+
+  .section-subtitle {
+    @apply font-sans text-lg text-gray-600 mb-12 text-center max-w-3xl mx-auto;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-soft overflow-hidden transition duration-300 hover:shadow-lg;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Styles spécifiques */
+.hero-section {
+  @apply relative min-h-screen flex items-center;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
