@@ -9,18 +9,24 @@ import service1Image from '../assets/service1.jpg';
 import service2Image from '../assets/service2.jpg';
 import service3Image from '../assets/service3.jpg';
 import testimonialImage from '../assets/testimonial.jpg';
+import keynaSpaLogo from '../assets/keyna-spa-logo.png'; // Nouveau logo
 
 const Home = () => {
   return (
     <>
       {/* Hero Section */}
-      <section 
+      <section
         className="hero-section bg-cover bg-center relative"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
         <div className="absolute inset-0 bg-black bg-opacity-50"></div>
         <div className="container mx-auto px-4 relative z-10 h-screen flex flex-col justify-center">
           <div className="max-w-2xl animate-fadeIn">
+            <img
+                src={keynaSpaLogo}
+                alt="KEYNA SPA Logo"
+                className="h-16 md:h-20 mb-6" // Taille ajustable
+            />
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-4">
               Découvrez l'Art du Bien-Être
             </h1>
@@ -37,7 +43,7 @@ const Home = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Wave divider */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full">
@@ -53,7 +59,7 @@ const Home = () => {
           <p className="section-subtitle">
             Découvrez notre sélection de soins et de traitements conçus pour vous offrir une expérience de bien-être complète.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             {/* Service 1 */}
             <div className="card group hover:translate-y-[-5px]">
@@ -71,7 +77,7 @@ const Home = () => {
                 </Link>
               </div>
             </div>
-            
+
             {/* Service 2 */}
             <div className="card group hover:translate-y-[-5px]">
               <div className="relative h-64 overflow-hidden">
@@ -88,7 +94,7 @@ const Home = () => {
                 </Link>
               </div>
             </div>
-            
+
             {/* Service 3 */}
             <div className="card group hover:translate-y-[-5px]">
               <div className="relative h-64 overflow-hidden">
@@ -106,7 +112,7 @@ const Home = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="text-center mt-12">
             <Link to="/services" className="btn btn-outline">
               Voir tous les services
@@ -114,7 +120,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-      
+
       {/* About Section */}
       <section className="section bg-gray-50">
         <div className="container">
@@ -127,7 +133,7 @@ const Home = () => {
               <p className="text-gray-600 mb-6">
                 Nos valeurs reposent sur l'excellence du service, l'utilisation de produits naturels de haute qualité et une attention particulière portée à chaque client pour répondre à ses besoins spécifiques.
               </p>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
@@ -138,7 +144,7 @@ const Home = () => {
                     <p className="text-sm text-gray-600">Professionnels certifiés</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
                     <FiAward size={20} />
@@ -149,12 +155,12 @@ const Home = () => {
                   </div>
                 </div>
               </div>
-              
+
               <Link to="/about" className="btn btn-primary mt-8 inline-block">
                 En savoir plus
               </Link>
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div className="rounded-xl overflow-hidden h-40 md:h-64">
@@ -176,7 +182,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-      
+
       {/* CTA Section */}
       <section className="py-16 bg-primary">
         <div className="container">
@@ -205,7 +211,7 @@ const Home = () => {
           <p className="section-subtitle">
             Découvrez les témoignages de nos clients qui ont vécu l'expérience KEYNA SPA.
           </p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             {/* Testimonial 1 */}
             <div className="card p-6">
@@ -224,7 +230,7 @@ const Home = () => {
                 "Une expérience inoubliable ! Le massage aux pierres chaudes était parfait, et le personnel est d'une gentillesse remarquable. Je reviendrai très bientôt !"
               </p>
             </div>
-            
+
             {/* Testimonial 2 */}
             <div className="card p-6">
               <div className="flex items-center mb-4">
@@ -242,7 +248,7 @@ const Home = () => {
                 "J'ai offert à ma femme une journée complète au spa pour notre anniversaire de mariage. Elle en est revenue complètement métamorphosée. Un grand merci à toute l'équipe !"
               </p>
             </div>
-            
+
             {/* Testimonial 3 */}
             <div className="card p-6">
               <div className="flex items-center mb-4">
@@ -261,7 +267,7 @@ const Home = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="text-center mt-12">
             <Link to="/testimonials" className="btn btn-outline">
               Voir tous les témoignages
@@ -269,7 +275,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-      
+
       {/* Newsletter Section */}
       <section className="py-16 bg-gray-50">
         <div className="container">
@@ -278,7 +284,7 @@ const Home = () => {
             <p className="text-gray-600 mb-8">
               Inscrivez-vous à notre newsletter pour recevoir nos offres spéciales et actualités.
             </p>
-            
+
             <form className="flex max-w-md mx-auto">
               <input
                 type="email"
@@ -293,7 +299,7 @@ const Home = () => {
                 S'inscrire
               </button>
             </form>
-            
+
             <p className="text-sm text-gray-500 mt-4">
               En vous inscrivant, vous acceptez de recevoir nos emails et confirmez avoir lu notre politique de confidentialité.
             </p>

@@ -1,10 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
+import authService from '../services/authService';
 
-const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+const Register = () => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+    });
     const [error, setError] = useState('');
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -13,15 +17,12 @@ const Login = () => {
         e.preventDefault();
         setError('');
         try {
-            const role = await login(email, password);
-            if (role === 'admin') {
-                navigate('/admin');
-            } else {
-                navigate('/');
-            }
+            await authService.register(formData);
+            await login(formData.email, formData.password);
+            navigate('/');
         } catch (err) {
-            setError(err.message || 'Erreur de connexion');
-            console.error('Erreur de connexion:', err);
+            setError(err.response?.data?.error || 'Erreur lors de l’inscription');
+            console.error('Erreur d’inscription:', err);
         }
     };
 
@@ -29,9 +30,22 @@ const Login = () => {
         <section className="section bg-gray-50 min-h-screen flex items-center justify-center">
             <div className="container mx-auto px-4">
                 <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-                    <h2 className="text-3xl font-serif font-bold mb-6 text-center">Connexion</h2>
+                    <h2 className="text-3xl font-serif font-bold mb-6 text-center">Inscription</h2>
                     {error && <p className="text-red-500 mb-4">{error}</p>}
                     <form onSubmit={handleSubmit}>
+                        <div className="mb-4">
+                            <label htmlFor="name" className="block text-sm font-medium mb-2">
+                                Nom
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full p-3 border rounded-lg"
+                                required
+                            />
+                        </div>
                         <div className="mb-4">
                             <label htmlFor="email" className="block text-sm font-medium mb-2">
                                 Email
@@ -39,8 +53,8 @@ const Login = () => {
                             <input
                                 type="email"
                                 id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 className="w-full p-3 border rounded-lg"
                                 required
                             />
@@ -52,20 +66,26 @@ const Login = () => {
                             <input
                                 type="password"
                                 id="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                value={formData.password}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                 className="w-full p-3 border rounded-lg"
                                 required
                             />
                         </div>
                         <button type="submit" className="btn btn-primary w-full">
-                            Se connecter
+                            S’inscrire
                         </button>
                     </form>
+                    <p className="mt-4 text-center">
+                        Déjà un compte ?{' '}
+                        <a href="/login" className="text-primary hover:underline">
+                            Se connecter
+                        </a>
+                    </p>
                 </div>
             </div>
         </section>
     );
 };
 
-export default Login;
+export default Register;
