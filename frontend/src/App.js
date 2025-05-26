@@ -8,7 +8,6 @@ import React from 'react';
      import Booking from './pages/Booking';
      import Contact from './pages/Contact';
      import About from './pages/About';
-     import Testimonials from './pages/Testimonials';
      import PrivacyPolicy from './pages/PrivacyPolicy';
      import Terms from './pages/Terms';
      import Login from './pages/Login';
@@ -22,6 +21,20 @@ import React from 'react';
      import BookingsManagement from './pages/admin/BookingsManagement';
      import Statistics from './pages/admin/Statistics';
      import VipOffersManagement from './pages/admin/VipOffersManagement';
+     import History from './pages/History';
+    //  import DiscountsManagement from './pages/DiscountsManagement';
+     import PricingManagement from './pages/PricingManagement';
+     import Pricing from './pages/Pricing';
+    //  import ServiceDetail from './pages/ServiceDetail';
+    // import TariffsManagement from './pages/admin/TariffsManagement';
+    // import SchedulesManagement from './pages/admin/SchedulesManagement';
+    // import DiscountsManagement from './pages/DiscountsManagement';
+
+    import PrivateRoute from './components/PrivateRoute';
+    import ServiceDetail from './pages/ServiceDetail';
+    import TariffsManagement from './pages/admin/TariffsManagement';
+    import SchedulesManagement from './pages/admin/SchedulesManagement';
+    import DiscountsManagement from './pages/DiscountsManagement'
 
      const NotFound = () => (
          <div className="container mx-auto px-4 py-24 text-center">
@@ -45,7 +58,6 @@ import React from 'react';
                                  <Route path="/booking" element={<Booking />} />
                                  <Route path="/contact" element={<Contact />} />
                                  <Route path="/about" element={<About />} />
-                                 <Route path="/testimonials" element={<Testimonials />} />
                                  <Route path="/privacy" element={<PrivacyPolicy />} />
                                  <Route path="/terms" element={<Terms />} />
                                  <Route path="/cart" element={<Cart />} />
@@ -58,6 +70,17 @@ import React from 'react';
                                  <Route path="/admin/bookings" element={<BookingsManagement />} />
                                  <Route path="/admin/statistics" element={<Statistics />} />
                                  <Route path="/admin/vip" element={<VipOffersManagement />} />
+                                 <Route path="/history" element={<History />} />
+                                 {/* <Route path="/admin/discounts" element={<DiscountsManagement />} /> */}
+                                 <Route path="/admin/pricing" element={<PricingManagement />} />
+                                 <Route path="/pricing" element={<Pricing />} />
+                                 {/* <Route path="/service-details/:id" element={<ServiceDetail />} />
+                                <Route path="/admin/services/:serviceId/tariffs" element={<TariffsManagement />} />
+                                <Route path="/admin/schedules" element={<SchedulesManagement />} /> */}
+                                <Route path="/service-details/:id" element={<ServiceDetail />} />
+                                <Route path="/admin/services/:serviceId/tariffs" element={<PrivateRoute role="admin"><TariffsManagement /></PrivateRoute>} />
+                                <Route path="/admin/schedules" element={<PrivateRoute role="admin"><SchedulesManagement /></PrivateRoute>} />
+                                <Route path="/admin/discounts" element={<PrivateRoute role="admin"><DiscountsManagement /></PrivateRoute>} />
                                  <Route path="*" element={<NotFound />} />
                              </Routes>
                          </Layout>

@@ -48,6 +48,11 @@ const Shop = () => {
         setModalProduct(null);
     };
 
+    // Rediriger vers le panier
+    // const handleGoToCart = () => {
+    //     navigate('/cart');
+    // };
+
     if (loading) {
         return (
             <section className="section bg-white">
@@ -75,6 +80,7 @@ const Shop = () => {
             <div className="container">
                 <h2 className="section-title">Boutique</h2>
                 <p className="section-subtitle">Découvrez nos produits exclusifs.</p>
+
 
                 {error && <p className="text-center text-red-600 mb-6">{error}</p>}
                 {products.length === 0 ? (
