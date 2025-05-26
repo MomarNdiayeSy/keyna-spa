@@ -79,3 +79,108 @@ h1, h2, h3, h4, h5, h6 {
   background-position: center;
   background-repeat: no-repeat;
 }
+
+/* Animations pour les menus déroulants (desktop) */
+.dropdown-menu {
+  transform-origin: top;
+  transform: scaleY(0);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.dropdown-menu.open {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+/* Animation pour le menu mobile */
+.mobile-menu {
+  transform: translateY(-100%);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.mobile-menu.open {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Transition pour la rotation de FiChevronDown */
+.chevron-down {
+  transition-transform: duration-300;
+}
+
+/* Styles existants */
+.hero-parallax {
+  background-attachment: fixed;
+  background-position: center;
+  background-size: cover;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #8A6E4B;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.btn {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.price-badge {
+  transition: transform 0.3s ease;
+}
+.card:hover .price-badge {
+  transform: translateY(-5px);
+}
+
+/* Nouveau style pour le badge d’offre */
+.offer-badge {
+  background-color: rgba(214, 173, 96, 0.5); /* bg-accent/50 */
+  border: 1px solid rgba(214, 173, 96, 0.3); /* border-accent/30 */
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+.offer-badge:hover {
+  background-color: rgba(214, 173, 96, 0.7); /* bg-accent/70 */
+  transform: scale(1.05);
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fade-in 0.6s ease-out;
+}
+@keyframes slide-in {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+    animation: slide-in 0.4s ease-out;
+}

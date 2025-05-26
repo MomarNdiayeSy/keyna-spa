@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiShoppingCart, FiUser, FiLogOut } from 'react-icons/fi';
 import logo from '../../assets/logo.png';
 import { AuthContext } from '../../contexts/AuthContext';
+import { CartContext } from '../../contexts/CartContext';
 
 const Header = ({ onHeightChange }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
     const { user, logout } = useContext(AuthContext);
+    const { cartCount } = useContext(CartContext);
     const navigate = useNavigate();
     const headerRef = useRef(null);
     const mobileMenuRef = useRef(null);
@@ -25,7 +27,7 @@ const Header = ({ onHeightChange }) => {
             const headerHeight = headerRef.current ? headerRef.current.getBoundingClientRect().height : 0;
             const mobileMenuHeight = isMenuOpen && mobileMenuRef.current ? mobileMenuRef.current.getBoundingClientRect().height : 0;
             const totalHeight = headerHeight + mobileMenuHeight;
-            onHeightChange(totalHeight || 64); // Hauteur minimale par défaut (4rem)
+            onHeightChange(totalHeight || 64);
         };
 
         updateHeight();
@@ -39,6 +41,10 @@ const Header = ({ onHeightChange }) => {
             observer.disconnect();
         };
     }, [isMenuOpen, isScrolled, onHeightChange]);
+
+    useEffect(() => {
+        console.log('Cart count in Header:', cartCount);
+    }, [cartCount]);
 
     const closeMenu = () => {
         setIsMenuOpen(false);
@@ -70,7 +76,7 @@ const Header = ({ onHeightChange }) => {
                     </Link>
 
                     <nav className="hidden md:flex items-center space-x-8">
-                        <NavLinks isScrolled={isScrolled} user={user} handleLogout={handleLogout} />
+                        <NavLinks isScrolled={isScrolled} user={user} handleLogout={handleLogout} cartCount={cartCount} />
                     </nav>
 
                     <button
@@ -97,6 +103,7 @@ const Header = ({ onHeightChange }) => {
                             user={user}
                             closeMenu={closeMenu}
                             handleLogout={handleLogout}
+                            cartCount={cartCount}
                         />
                     </div>
                 </div>
@@ -105,7 +112,7 @@ const Header = ({ onHeightChange }) => {
     );
 };
 
-const NavLinks = ({ isScrolled, user, handleLogout }) => {
+const NavLinks = ({ isScrolled, user, handleLogout, cartCount }) => {
     const textColor = isScrolled ? 'text-gray-800 hover:text-primary' : 'text-white hover:text-gray-200';
 
     return (
@@ -133,11 +140,16 @@ const NavLinks = ({ isScrolled, user, handleLogout }) => {
                 {(!user || user.role === 'customer') && (
                     <Link
                         to="/cart"
-                        className={`p-2 rounded-full ${
+                        className={`p-2 rounded-full relative ${
                             isScrolled ? 'text-primary hover:bg-gray-100' : 'text-white hover:bg-white/20'
                         }`}
                     >
                         <FiShoppingCart className="text-xl" />
+                        {cartCount > 0 && (
+                            <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transform translate-x-2 -translate-y-2">
+                                {cartCount}
+                            </span>
+                        )}
                     </Link>
                 )}
                 {user ? (
@@ -186,7 +198,7 @@ const NavLinks = ({ isScrolled, user, handleLogout }) => {
     );
 };
 
-const MobileNavLinks = ({ user, closeMenu, handleLogout }) => {
+const MobileNavLinks = ({ user, closeMenu, handleLogout, cartCount }) => {
     return (
         <>
             {user && user.role === 'admin' ? (
@@ -236,10 +248,15 @@ const MobileNavLinks = ({ user, closeMenu, handleLogout }) => {
                 {(!user || user.role === 'customer') && (
                     <Link
                         to="/cart"
-                        className="text-gray-800 hover:text-primary flex items-center"
+                        className="text-gray-800 hover:text-primary flex items-center relative"
                         onClick={closeMenu}
                     >
                         <FiShoppingCart className="mr-2" /> Panier
+                        {cartCount > 0 && (
+                            <span className="absolute top-0 left-4 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transform -translate-y-2">
+                                {cartCount}
+                            </span>
+                        )}
                     </Link>
                 )}
                 {user ? (

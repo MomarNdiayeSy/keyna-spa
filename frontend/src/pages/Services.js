@@ -7,16 +7,10 @@ const Services = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Charger les services depuis l'API
     useEffect(() => {
-        axios
-            .get('http://localhost:5000/api/services')
+        axios.get('http://localhost:5000/api/services')
             .then((response) => {
-                const apiServices = response.data.map((service) => ({
-                    ...service,
-                    price: parseFloat(service.price),
-                }));
-                setServices(apiServices);
+                setServices(Array.isArray(response.data) ? response.data : []);
                 setLoading(false);
             })
             .catch((error) => {
@@ -28,10 +22,10 @@ const Services = () => {
 
     if (loading) {
         return (
-            <section className="section bg-white">
-                <div className="container">
-                    <h2 className="section-title">Nos Services</h2>
-                    <p className="text-center text-gray-600">Chargement des services...</p>
+            <section className="min-h-screen bg-neutral py-12">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-serif font-bold mb-4 text-primary-dark">Nos Services</h2>
+                    <p className="text-center text-secondary-dark">Chargement des services...</p>
                 </div>
             </section>
         );
@@ -39,9 +33,9 @@ const Services = () => {
 
     if (error) {
         return (
-            <section className="section bg-white">
-                <div className="container">
-                    <h2 className="section-title">Nos Services</h2>
+            <section className="min-h-screen bg-neutral py-12">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-serif font-bold mb-4 text-primary-dark">Nos Services</h2>
                     <p className="text-center text-red-600">{error}</p>
                 </div>
             </section>
@@ -49,50 +43,46 @@ const Services = () => {
     }
 
     return (
-        <section className="section bg-white">
-            <div className="container">
-                <h2 className="section-title">Nos Services</h2>
-                <p className="section-subtitle">
+        <section className="min-h-screen bg-neutral py-12">
+            <div className="container mx-auto px-4">
+                <h2 className="text-3xl font-serif font-bold mb-4 text-primary-dark">Nos Services</h2>
+                <p className="text-body text-secondary-dark mb-12">
                     Découvrez nos soins conçus pour votre bien-être. Chaque service est pensé pour offrir une expérience relaxante et revitalisante.
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-                    {services.map((service) => (
-                        <div key={service.id} className="card group hover:translate-y-[-5px]">
-                            <div className="relative h-64 overflow-hidden">
-                                {service.image ? (
-                                    <img
-                                        src={`http://localhost:5000${service.image}`}
-                                        alt={service.name}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <span className="text-gray-500">Aucune image</span>
-                                    </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                                <h3 className="absolute bottom-4 left-4 text-xl font-serif text-white">{service.name}</h3>
-                            </div>
-                            <div className="p-6">
-                                <p className="text-gray-600 mb-4">{service.description}</p>
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-lg font-semibold text-primary">
-                                        {typeof service.price === 'number' && !isNaN(service.price)
-                                            ? service.price.toFixed(2)
-                                            : Number(service.price) && !isNaN(Number(service.price))
-                                                ? Number(service.price).toFixed(2)
-                                                : 'N/A'}{' '}
-                                        €
-                                    </span>
-                                    <span className="text-gray-500">{service.duration}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {Array.isArray(services) && services.length > 0 ? (
+                        services.map((service) => (
+                            <div key={service.id} className="bg-white rounded-xl shadow-soft group hover:shadow-lg transition-shadow">
+                                <div className="relative h-64 overflow-hidden rounded-t-xl">
+                                    {service.image ? (
+                                        <img
+                                            src={`http://localhost:5000${service.image}`}
+                                            alt={service.name}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-neutral-light flex items-center justify-center">
+                                            <span className="text-secondary-dark">Aucune image</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                                    <h3 className="absolute bottom-4 left-4 text-xl font-serif text-white">{service.name}</h3>
                                 </div>
-                                <Link to="/booking" className="btn btn-primary w-full">
-                                    Réserver
-                                </Link>
+                                <div className="p-6">
+                                    <p className="text-body text-secondary-dark mb-4 line-clamp-3">{service.description}</p>
+                                    <Link
+                                        to={`/service-details/${service.id}`}
+                                        className="btn bg-accent text-white w-full text-center py-2 rounded-xl hover:bg-accent-dark"
+                                    >
+                                        Voir plus
+                                    </Link>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        <p className="text-center text-secondary-dark">Aucun service disponible.</p>
+                    )}
                 </div>
             </div>
         </section>

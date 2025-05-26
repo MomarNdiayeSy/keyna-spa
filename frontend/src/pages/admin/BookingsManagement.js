@@ -1,23 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../services/api';
+import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 const BookingsManagement = () => {
     const [bookings, setBookings] = useState([]);
     const [services, setServices] = useState([]);
+    const [tariffs, setTariffs] = useState([]);
+    const [users, setUsers] = useState([]);
     const [newBooking, setNewBooking] = useState({
-        service_id: '',
-        booking_date: '',
-        booking_time: '',
+        tariff_id: '',
+        date_time: '',
         customer_name: '',
         customer_email: '',
+        customer_phone: '',
+        user_id: '',
+        status: 'pending',
     });
     const [editingBooking, setEditingBooking] = useState(null);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    // Vérifier l'authentification admin
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -30,126 +33,129 @@ const BookingsManagement = () => {
                 navigate('/login');
             }
         } catch (err) {
-            setError('Erreur de token');
             navigate('/login');
         }
     }, [navigate]);
 
-    // Charger les réservations et services
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [bookingsRes, servicesRes] = await Promise.all([
-                    api.get('/api/bookings').catch((err) => {
-                        console.error('Erreur GET /api/bookings:', err.response?.data || err.message);
-                        throw err;
+                const token = localStorage.getItem('token');
+                const [bookingsRes, servicesRes, usersRes] = await Promise.all([
+                    axios.get('http://localhost:5000/api/bookings', {
+                        headers: { Authorization: `Bearer ${token}` },
                     }),
-                    api.get('/api/services').catch((err) => {
-                        console.error('Erreur GET /api/services:', err.response?.data || err.message);
-                        throw err;
+                    axios.get('http://localhost:5000/api/services', {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    axios.get('http://localhost:5000/api/users', {
+                        headers: { Authorization: `Bearer ${token}` },
                     }),
                 ]);
+
+                let tariffsRes = { data: [] };
+                if (servicesRes.data.length > 0) {
+                    tariffsRes = await axios.get(`http://localhost:5000/api/tariffs/${servicesRes.data[0].id}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                }
+
                 setBookings(bookingsRes.data);
                 setServices(servicesRes.data);
+                setTariffs(tariffsRes.data);
+                setUsers(usersRes.data);
+                setError('');
             } catch (err) {
-                setError('Erreur lors du chargement des données');
-                console.error('Erreur fetchData:', err.response?.data || err.message);
+                setError('Erreur lors du chargement des données.');
+                console.error('Erreur:', err);
             }
         };
         fetchData();
     }, []);
 
-    // Ajouter une réservation
     const handleAddBooking = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('/api/bookings', {
-                service_id: parseInt(newBooking.service_id),
-                booking_date: newBooking.booking_date,
-                booking_time: newBooking.booking_time,
-                customer_name: newBooking.customer_name,
-                customer_email: newBooking.customer_email,
+            const response = await axios.post('http://localhost:5000/api/bookings', newBooking, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
-            setBookings([...bookings, response.data]);
+            setBookings([...bookings, response.data.booking]);
             setNewBooking({
-                service_id: '',
-                booking_date: '',
-                booking_time: '',
+                tariff_id: '',
+                date_time: '',
                 customer_name: '',
                 customer_email: '',
+                customer_phone: '',
+                user_id: '',
+                status: 'pending',
             });
             setError('');
         } catch (err) {
-            setError(err.response?.data?.error || 'Erreur lors de l’ajout de la réservation');
-            console.error('Erreur handleAddBooking:', err.response?.data || err.message);
+            setError(err.response?.data?.error || 'Erreur lors de l’ajout de la réservation.');
+            console.error('Erreur:', err);
         }
     };
 
-    // Modifier une réservation
-    const handleEditBooking = async (booking) => {
+    const handleEditBooking = async (e) => {
+        e.preventDefault();
         try {
-            const response = await api.put(`/api/bookings/${booking.id}`, {
-                service_id: parseInt(booking.service_id),
-                booking_date: booking.booking_date,
-                booking_time: booking.booking_time,
-                customer_name: booking.customer_name,
-                customer_email: booking.customer_email,
+            const response = await axios.put(`http://localhost:5000/api/bookings/${editingBooking.id}`, editingBooking, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
-            setBookings(bookings.map((b) => (b.id === booking.id ? response.data : b)));
+            setBookings(bookings.map((b) => (b.id === editingBooking.id ? response.data : b)));
             setEditingBooking(null);
             setError('');
         } catch (err) {
-            setError(err.response?.data?.error || 'Erreur lors de la modification de la réservation');
-            console.error('Erreur handleEditBooking:', err.response?.data || err.message);
+            setError(err.response?.data?.error || 'Erreur lors de la modification de la réservation.');
+            console.error('Erreur:', err);
         }
     };
 
-    // Supprimer une réservation
     const handleDeleteBooking = async (id) => {
         try {
-            await api.delete(`/api/bookings/${id}`);
+            await axios.delete(`http://localhost:5000/api/bookings/${id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
             setBookings(bookings.filter((b) => b.id !== id));
             setError('');
         } catch (err) {
-            setError(err.response?.data?.error || 'Erreur lors de la suppression de la réservation');
-            console.error('Erreur handleDeleteBooking:', err.response?.data || err.message);
+            setError(err.response?.data?.error || 'Erreur lors de la suppression de la réservation.');
+            console.error('Erreur:', err);
         }
     };
 
     return (
-        <section className="section bg-gray-50 min-h-screen py-12">
+        <section className="min-h-screen bg-gray-50 py-12">
             <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-serif font-bold mb-8 text-center">Gestion des Réservations</h2>
+                <h2 className="text-3xl font-serif font-bold mb-8 text-center text-primary-dark">Gestion des Réservations</h2>
 
-                {error && <p className="text-red-500 mb-4">{error}</p>}
+                {error && (
+                    <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-xl">
+                        {error}
+                    </div>
+                )}
 
-                {/* Formulaire d'ajout */}
-                <form onSubmit={handleAddBooking} className="mb-12 bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-xl font-semibold mb-4">Ajouter une Réservation</h3>
+                <form onSubmit={handleAddBooking} className="mb-12 bg-white p-6 rounded-xl shadow-soft">
+                    <h3 className="text-xl font-semibold mb-4 text-primary-dark">Ajouter une Réservation</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <select
-                            value={newBooking.service_id}
-                            onChange={(e) => setNewBooking({ ...newBooking, service_id: e.target.value })}
-                            className="p-3 border rounded-lg w-full"
+                            value={newBooking.tariff_id}
+                            onChange={(e) => setNewBooking({ ...newBooking, tariff_id: e.target.value })}
+                            className="p-3 border border-neutral-light rounded-xl"
                             required
                         >
-                            <option value="">Sélectionner un service</option>
-                            {services.map((service) => (
-                                <option key={service.id} value={service.id}>{service.name}</option>
+                            <option value="">Sélectionner une option</option>
+                            {tariffs.map((tariff) => (
+                                <option key={tariff.id} value={tariff.id}>
+                                    {services.find((s) => s.id === tariff.service_id)?.name} - {tariff.name}
+                                </option>
                             ))}
                         </select>
                         <input
-                            type="date"
-                            value={newBooking.booking_date}
-                            onChange={(e) => setNewBooking({ ...newBooking, booking_date: e.target.value })}
-                            className="p-3 border rounded-lg w-full"
-                            required
-                        />
-                        <input
-                            type="time"
-                            value={newBooking.booking_time}
-                            onChange={(e) => setNewBooking({ ...newBooking, booking_time: e.target.value })}
-                            className="p-3 border rounded-lg w-full"
+                            type="datetime-local"
+                            value={newBooking.date_time}
+                            onChange={(e) => setNewBooking({ ...newBooking, date_time: e.target.value })}
+                            className="p-3 border border-neutral-light rounded-xl"
                             required
                         />
                         <input
@@ -157,7 +163,7 @@ const BookingsManagement = () => {
                             placeholder="Nom du client"
                             value={newBooking.customer_name}
                             onChange={(e) => setNewBooking({ ...newBooking, customer_name: e.target.value })}
-                            className="p-3 border rounded-lg w-full"
+                            className="p-3 border border-neutral-light rounded-xl"
                             required
                         />
                         <input
@@ -165,37 +171,68 @@ const BookingsManagement = () => {
                             placeholder="Email du client"
                             value={newBooking.customer_email}
                             onChange={(e) => setNewBooking({ ...newBooking, customer_email: e.target.value })}
-                            className="p-3 border rounded-lg w-full"
+                            className="p-3 border border-neutral-light rounded-xl"
                             required
                         />
+                        <input
+                            type="tel"
+                            placeholder="Numéro de téléphone"
+                            value={newBooking.customer_phone}
+                            onChange={(e) => setNewBooking({ ...newBooking, customer_phone: e.target.value })}
+                            className="p-3 border border-neutral-light rounded-xl"
+                        />
+                        <select
+                            value={newBooking.user_id}
+                            onChange={(e) => setNewBooking({ ...newBooking, user_id: e.target.value })}
+                            className="p-3 border border-neutral-light rounded-xl"
+                        >
+                            <option value="">Aucun utilisateur associé</option>
+                            {users.map((user) => (
+                                <option key={user.id} value={user.id}>
+                                    {user.name} ({user.email || 'N/A'})
+                                </option>
+                            ))}
+                        </select>
+                        <select
+                            value={newBooking.status}
+                            onChange={(e) => setNewBooking({ ...newBooking, status: e.target.value })}
+                            className="p-3 border border-neutral-light rounded-xl"
+                        >
+                            <option value="pending">En attente</option>
+                            <option value="confirmed">Confirmée</option>
+                            <option value="cancelled">Annulée</option>
+                        </select>
                     </div>
-                    <button type="submit" className="btn btn-primary mt-4">Ajouter</button>
+                    <button type="submit" className="mt-4 bg-accent text-white px-6 py-2 rounded-xl hover:bg-accent-dark">
+                        Ajouter
+                    </button>
                 </form>
 
-                {/* Liste des réservations */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-xl font-semibold mb-4">Liste des Réservations</h3>
+                <div className="bg-white p-6 rounded-xl shadow-soft">
+                    <h3 className="text-xl font-semibold mb-4 text-primary-dark">Liste des Réservations</h3>
                     <table className="w-full table-auto">
                         <thead>
-                        <tr className="bg-gray-100">
-                            <th className="p-3 text-left">Service</th>
-                            <th className="p-3 text-left">Date</th>
-                            <th className="p-3 text-left">Heure</th>
-                            <th className="p-3 text-left">Client</th>
-                            <th className="p-3 text-left">Email</th>
-                            <th className="p-3 text-left">Actions</th>
-                        </tr>
+                            <tr className="bg-neutral-light">
+                                <th className="p-3 text-left">Service</th>
+                                <th className="p-3 text-left">Option</th>
+                                <th className="p-3 text-left">Date et heure</th>
+                                <th className="p-3 text-left">Client</th>
+                                <th className="p-3 text-left">Email</th>
+                                <th className="p-3 text-left">Téléphone</th>
+                                <th className="p-3 text-left">Statut</th>
+                                <th className="p-3 text-left">Actions</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        {bookings.map((booking) => {
-                            const service = services.find((s) => s.id === booking.service_id);
-                            return (
+                            {bookings.map((booking) => (
                                 <tr key={booking.id} className="border-b">
-                                    <td className="p-3">{service ? service.name : 'Inconnu'}</td>
-                                    <td className="p-3">{booking.booking_date}</td>
-                                    <td className="p-3">{booking.booking_time}</td>
+                                    <td className="p-3">{booking.service_name}</td>
+                                    <td className="p-3">{booking.tariff_name}</td>
+                                    <td className="p-3">{new Date(booking.date_time).toLocaleString()}</td>
                                     <td className="p-3">{booking.customer_name}</td>
                                     <td className="p-3">{booking.customer_email}</td>
+                                    <td className="p-3">{booking.customer_phone || 'N/A'}</td>
+                                    <td className="p-3">{booking.status}</td>
                                     <td className="p-3">
                                         <button
                                             onClick={() => setEditingBooking(booking)}
@@ -211,65 +248,94 @@ const BookingsManagement = () => {
                                         </button>
                                     </td>
                                 </tr>
-                            );
-                        })}
+                            ))}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Formulaire de modification (modal) */}
                 {editingBooking && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <div className="bg-white p-6 rounded-lg w-full max-w-md">
-                            <h3 className="text-xl font-semibold mb-4">Modifier la Réservation</h3>
-                            <select
-                                value={editingBooking.service_id}
-                                onChange={(e) => setEditingBooking({ ...editingBooking, service_id: e.target.value })}
-                                className="p-3 border rounded-lg w-full mb-4"
-                            >
-                                <option value="">Sélectionner un service</option>
-                                {services.map((service) => (
-                                    <option key={service.id} value={service.id}>{service.name}</option>
-                                ))}
-                            </select>
-                            <input
-                                type="date"
-                                value={editingBooking.booking_date}
-                                onChange={(e) => setEditingBooking({ ...editingBooking, booking_date: e.target.value })}
-                                className="p-3 border rounded-lg w-full mb-4"
-                            />
-                            <input
-                                type="time"
-                                value={editingBooking.booking_time}
-                                onChange={(e) => setEditingBooking({ ...editingBooking, booking_time: e.target.value })}
-                                className="p-3 border rounded-lg w-full mb-4"
-                            />
-                            <input
-                                type="text"
-                                value={editingBooking.customer_name}
-                                onChange={(e) => setEditingBooking({ ...editingBooking, customer_name: e.target.value })}
-                                className="p-3 border rounded-lg w-full mb-4"
-                            />
-                            <input
-                                type="email"
-                                value={editingBooking.customer_email}
-                                onChange={(e) => setEditingBooking({ ...editingBooking, customer_email: e.target.value })}
-                                className="p-3 border rounded-lg w-full mb-4"
-                            />
-                            <div className="flex justify-end space-x-4">
-                                <button
-                                    onClick={() => setEditingBooking(null)}
-                                    className="btn bg-gray-300 hover:bg-gray-400"
+                        <div className="bg-white p-6 rounded-xl shadow-soft w-full max-w-md">
+                            <h3 className="text-lg font-semibold mb-4 text-primary-dark">Modifier la Réservation</h3>
+                            <form onSubmit={handleEditBooking}>
+                                <select
+                                    value={editingBooking.tariff_id}
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, tariff_id: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
                                 >
-                                    Annuler
-                                </button>
-                                <button
-                                    onClick={() => handleEditBooking(editingBooking)}
-                                    className="btn btn-primary"
+                                    <option value="">Sélectionner une option</option>
+                                    {tariffs.map((tariff) => (
+                                        <option key={tariff.id} value={tariff.id}>
+                                            {services.find((s) => s.id === tariff.service_id)?.name} - {tariff.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="datetime-local"
+                                    value={
+                                        editingBooking.date_time
+                                            ? new Date(editingBooking.date_time).toISOString().slice(0, 16)
+                                            : ''
+                                    }
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, date_time: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                />
+                                <input
+                                    type="text"
+                                    value={editingBooking.customer_name}
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, customer_name: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                />
+                                <input
+                                    type="email"
+                                    value={editingBooking.customer_email}
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, customer_email: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                />
+                                <input
+                                    type="tel"
+                                    value={editingBooking.customer_phone || ''}
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, customer_phone: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                    placeholder="+33 1 23 45 67 89"
+                                />
+                                <select
+                                    value={editingBooking.user_id || ''}
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, user_id: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
                                 >
-                                    Enregistrer
-                                </button>
-                            </div>
+                                    <option value="">Aucun utilisateur associé</option>
+                                    {users.map((user) => (
+                                        <option key={user.id} value={user.id}>
+                                            {user.name} ({user.email || 'N/A'})
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={editingBooking.status}
+                                    onChange={(e) => setEditingBooking({ ...editingBooking, status: e.target.value })}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                >
+                                    <option value="pending">En attente</option>
+                                    <option value="confirmed">Confirmée</option>
+                                    <option value="cancelled">Annulée</option>
+                                </select>
+                                <div className="flex justify-end space-x-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditingBooking(null)}
+                                        className="px-4 py-2 bg-neutral-light rounded-xl hover:bg-neutral-dark hover:text-white"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent-dark"
+                                    >
+                                        Enregistrer
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}

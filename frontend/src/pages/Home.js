@@ -1,7 +1,8 @@
-// frontend/src/pages/Home.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiCalendar, FiShoppingBag, FiAward, FiUsers } from 'react-icons/fi';
+import axios from 'axios';
+import 'animate.css';
 
 // Importez les images (à remplacer par vos propres images)
 import heroImage from '../assets/hero-bg.jpg'; // Image de fond du hero
@@ -12,34 +13,85 @@ import testimonialImage from '../assets/testimonial.jpg';
 import keynaSpaLogo from '../assets/keyna-spa-logo.png'; // Nouveau logo
 
 const Home = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [newsletterSubmitted, setNewsletterSubmitted] = useState(false);
+
+  // Charger les services depuis l'API
+  useEffect(() => {
+    axios
+      .get('http://localhost:5000/api/services')
+      .then((response) => {
+        const apiServices = Array.isArray(response.data)
+          ? response.data.slice(0, 3) // Limiter à 3 services
+          : [];
+        setServices(apiServices);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error('Erreur lors de la récupération des services:', error);
+        setError('Impossible de charger les services. Veuillez réessayer plus tard.');
+        setLoading(false);
+      });
+  }, []);
+
+  // Gérer la soumission de la newsletter
+  const handleNewsletterSubmit = (e) => {
+    e.preventDefault();
+    // Simulation d'envoi (remplacer par une vraie requête API si nécessaire)
+    setNewsletterSubmitted(true);
+    setTimeout(() => setNewsletterSubmitted(false), 3000); // Réinitialiser après 3s
+  };
+
   return (
     <>
       {/* Hero Section */}
       <section
-        className="hero-section bg-cover bg-center relative"
+        className="hero-section bg-cover bg-center relative hero-parallax min-h-screen flex items-center"
         style={{ backgroundImage: `url(${heroImage})` }}
       >
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-        <div className="container mx-auto px-4 relative z-10 h-screen flex flex-col justify-center">
-          <div className="max-w-2xl animate-fadeIn">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40"></div>
+        <div className="container mx-auto px-4 relative z-10 flex flex-col justify-center">
+          <div className="max-w-3xl text-center mx-auto">
             <img
-                src={keynaSpaLogo}
-                alt="KEYNA SPA Logo"
-                className="h-16 md:h-20 mb-6" // Taille ajustable
+              src={keynaSpaLogo}
+              alt="KEYNA SPA Logo"
+              className="h-16 md:h-20 mx-auto mb-6 animate__animated animate__fadeIn animate__delay-1s"
             />
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-4">
-              Découvrez l'Art du Bien-Être
+            <h1
+              className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-4 animate__animated animate__slideInUp animate__delay-2s"
+            >
+              Vivez l’Art du Bien-Être
             </h1>
-            <p className="text-xl text-white mb-8">
-              KEYNA SPA vous offre une expérience unique de relaxation et de soins dans un cadre luxueux et apaisant.
+            <p
+              className="text-xl md:text-2xl text-white mb-8 animate__animated animate__fadeIn animate__delay-3s"
+            >
+              KEYNA SPA : Une oasis de luxe et de sérénité pour votre corps et votre esprit.
             </p>
-            <div className="flex flex-wrap gap-4">
-              <Link to="/booking" className="btn btn-primary">
-                Réserver Maintenant
+            <div className="flex flex-wrap gap-4 justify-center animate__animated animate__fadeIn animate__delay-4s">
+              <Link
+                to="/booking"
+                className="btn bg-accent text-white hover:bg-accent-dark flex items-center px-6 py-3 rounded-xl shadow-soft"
+                aria-label="Réserver une séance"
+              >
+                <FiCalendar className="mr-2" /> Réserver Maintenant
               </Link>
-              <Link to="/services" className="btn bg-white text-primary hover:bg-gray-100">
+              <Link
+                to="/services"
+                className="btn bg-transparent border-2 border-white text-white hover:bg-white hover:text-primary px-6 py-3 rounded-xl"
+                aria-label="Voir nos services"
+              >
                 Nos Services
               </Link>
+            </div>
+            <div className="mt-6 animate__animated animate__fadeIn animate__delay-5s">
+              <span
+                className="offer-badge inline-flex items-center justify-center px-6 py-3 rounded-full text-base text-white font-medium shadow-soft"
+                aria-label="Offre limitée : 15% sur votre première visite jusqu’au 30 mai 2025"
+              >
+                Offre limitée : <strong className="mx-1">15% sur votre première visite</strong> jusqu’au 30 mai 2025
+              </span>
             </div>
           </div>
         </div>
@@ -47,135 +99,167 @@ const Home = () => {
         {/* Wave divider */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full">
-            <path fill="#ffffff" fillOpacity="1" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,149.3C672,149,768,171,864,176C960,181,1056,171,1152,149.3C1248,128,1344,96,1392,80L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+            <path
+              fill="#F5F5F5"
+              fillOpacity="1"
+              d="M0,96L48,112C48,64,96,64,144,80C192,96,192,128,240,149.3C288,171,336,171,384,160C432,149,384,128,480,128C576,128,528,149,624,160C672,171,768,171,816,160C864,149,816,128,912,112C960,96,1008,96,1056,112C1104,128,1056,160,1152,160C1200,160,1248,128,1296,112C1344,96,1392,96,1416,96C1440,96,1440,96,1440,96L1440,320L0,320Z"
+            ></path>
           </svg>
         </div>
       </section>
 
       {/* Services Preview Section */}
-      <section className="section bg-white">
-        <div className="container">
-          <h2 className="section-title">Nos Services Premium</h2>
-          <p className="section-subtitle">
-            Découvrez notre sélection de soins et de traitements conçus pour vous offrir une expérience de bien-être complète.
+      <section className="section bg-neutral py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-serif font-bold text-center text-neutral-dark mb-4 animate__animated animate__fadeIn">
+            Nos Soins d’Exception
+          </h2>
+          <p className="text-center text-neutral-dark/80 max-w-2xl mx-auto mb-12 animate__animated animate__fadeIn animate__delay-1s">
+            Plongez dans une expérience de bien-être unique avec nos soins conçus pour revitaliser votre corps et esprit.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            {/* Service 1 */}
-            <div className="card group hover:translate-y-[-5px]">
-              <div className="relative h-64 overflow-hidden">
-                <img src={service1Image} alt="Massage Relaxant" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                <h3 className="absolute bottom-4 left-4 text-xl font-serif text-white">Massages Relaxants</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-4">
-                  Nos massages thérapeutiques vous aident à vous détendre et à revitaliser votre corps et votre esprit.
-                </p>
-                <Link to="/services#massages" className="text-primary font-medium hover:text-primary-dark">
-                  En savoir plus →
-                </Link>
-              </div>
+          {loading ? (
+            <div className="loader" aria-label="Chargement des services"></div>
+          ) : error ? (
+            <p className="text-center text-red-600 bg-red-50 p-4 rounded-xl">{error}</p>
+          ) : Array.isArray(services) && services.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-12">
+              {services.map((service) => (
+                <div
+                  key={service.id}
+                  className="card bg-white rounded-xl shadow-soft group hover:shadow-lg transition-all duration-300"
+                >
+                  <div className="relative h-64 overflow-hidden rounded-t-xl">
+                    {service.image ? (
+                      <img
+                        src={`http://localhost:5000${service.image}`}
+                        alt={service.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-neutral flex items-center justify-center">
+                        <span className="text-neutral-dark/60">Aucune image</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                    <h3 className="absolute bottom-4 left-4 text-xl font-serif text-white">{service.name}</h3>
+                  </div>
+                  <div className="p-6">
+                    <p className="text-neutral-dark/80 mb-4 line-clamp-3">{service.description}</p>
+                    <Link
+                      to={`/service-details/${service.id}`}
+                      className="btn btn-primary w-full flex items-center justify-center bg-accent text-white py-2 rounded-xl hover:bg-accent-dark"
+                      aria-label={`Voir plus sur ${service.name}`}
+                    >
+                      Voir plus
+                    </Link>
+                  </div>
+                </div>
+              ))}
             </div>
+          ) : (
+            <p className="text-center text-neutral-dark/80">Aucun soin disponible pour le moment.</p>
+          )}
 
-            {/* Service 2 */}
-            <div className="card group hover:translate-y-[-5px]">
-              <div className="relative h-64 overflow-hidden">
-                <img src={service2Image} alt="Soins du Visage" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                <h3 className="absolute bottom-4 left-4 text-xl font-serif text-white">Soins du Visage</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-4">
-                  Des traitements personnalisés pour une peau éclatante, utilisant des produits de qualité supérieure.
-                </p>
-                <Link to="/services#facial" className="text-primary font-medium hover:text-primary-dark">
-                  En savoir plus →
-                </Link>
-              </div>
-            </div>
-
-            {/* Service 3 */}
-            <div className="card group hover:translate-y-[-5px]">
-              <div className="relative h-64 overflow-hidden">
-                <img src={service3Image} alt="Spa & Hammam" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                <h3 className="absolute bottom-4 left-4 text-xl font-serif text-white">Spa & Hammam</h3>
-              </div>
-              <div className="p-6">
-                <p className="text-gray-600 mb-4">
-                  Profitez de nos installations de spa et de hammam pour une expérience de détente complète.
-                </p>
-                <Link to="/services#spa" className="text-primary font-medium hover:text-primary-dark">
-                  En savoir plus →
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <Link to="/services" className="btn btn-outline">
-              Voir tous les services
+          <div className="text-center mt-12 animate__animated animate__fadeIn animate__delay-2s">
+            <Link
+              to="/services"
+              className="btn bg-accent text-white hover:bg-accent-dark px-6 py-3 rounded-xl"
+              aria-label="Voir tous les services"
+            >
+              Découvrir tous nos soins
             </Link>
           </div>
         </div>
       </section>
 
       {/* About Section */}
-      <section className="section bg-gray-50">
-        <div className="container">
+      <section className="section bg-white py-16">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6">Bienvenue chez KEYNA SPA</h2>
-              <p className="text-gray-600 mb-4">
-                Fondé en 2012, KEYNA SPA est rapidement devenu une référence dans le domaine du bien-être de luxe. Notre équipe de professionnels qualifiés vous accueille dans un cadre élégant et apaisant, conçu pour vous offrir une expérience unique.
+            <div className="order-2 md:order-1">
+              <h2
+                className="text-3xl md:text-4xl font-serif font-bold text-neutral-dark mb-6 animate__animated animate__fadeIn"
+              >
+                L’Essence de KEYNA SPA
+              </h2>
+              <p
+                className="text-neutral-dark/80 mb-4 animate__animated animate__fadeIn animate__delay-1s"
+              >
+                Depuis 2012, KEYNA SPA est synonyme de luxe et de sérénité. Notre équipe d’experts vous accueille dans un cadre raffiné, dédié à votre bien-être.
               </p>
-              <p className="text-gray-600 mb-6">
-                Nos valeurs reposent sur l'excellence du service, l'utilisation de produits naturels de haute qualité et une attention particulière portée à chaque client pour répondre à ses besoins spécifiques.
+              <p
+                className="text-neutral-dark/80 mb-6 animate__animated animate__fadeIn animate__delay-2s"
+              >
+                Chaque soin est conçu avec des produits naturels premium, pour une expérience personnalisée qui répond à vos besoins uniques.
               </p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate__animated animate__fadeIn animate__delay-3s">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
+                  <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                     <FiUsers size={20} />
                   </div>
                   <div>
-                    <h4 className="font-medium">Personnel Expert</h4>
-                    <p className="text-sm text-gray-600">Professionnels certifiés</p>
+                    <h4 className="font-medium text-neutral-dark">Équipe d’Experts</h4>
+                    <p className="text-sm text-neutral-dark/80">Certifiés et passionnés</p>
                   </div>
                 </div>
-
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white">
+                  <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                     <FiAward size={20} />
                   </div>
                   <div>
-                    <h4 className="font-medium">Produits Premium</h4>
-                    <p className="text-sm text-gray-600">Sélectionnés avec soin</p>
+                    <h4 className="font-medium text-neutral-dark">Produits d’Excellence</h4>
+                    <p className="text-sm text-neutral-dark/80">Naturels et haut de gamme</p>
                   </div>
                 </div>
               </div>
 
-              <Link to="/about" className="btn btn-primary mt-8 inline-block">
+              <Link
+                to="/about"
+                className="btn btn-primary mt-8 inline-block animate__animated animate__fadeIn animate__delay-4s"
+                aria-label="En savoir plus sur KEYNA SPA"
+              >
                 En savoir plus
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="order-1 md:order-2 grid grid-cols-2 gap-4">
               <div className="space-y-4">
-                <div className="rounded-xl overflow-hidden h-40 md:h-64">
-                  <img src={service1Image} alt="KEYNA SPA" className="w-full h-full object-cover" />
+                <div className="rounded-xl overflow-hidden h-40 md:h-64 animate-float">
+                  <img
+                    src={service1Image}
+                    alt="Soin relaxant"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
-                <div className="rounded-xl overflow-hidden h-40 md:h-40">
-                  <img src={service2Image} alt="KEYNA SPA" className="w-full h-full object-cover" />
+                <div className="rounded-xl overflow-hidden h-40 md:h-40 animate-float" style={{ animationDelay: '1s' }}>
+                  <img
+                    src={service2Image}
+                    alt="Soin visage"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
               </div>
               <div className="space-y-4 mt-8">
-                <div className="rounded-xl overflow-hidden h-40 md:h-40">
-                  <img src={service3Image} alt="KEYNA SPA" className="w-full h-full object-cover" />
+                <div className="rounded-xl overflow-hidden h-40 md:h-40 animate-float" style={{ animationDelay: '2s' }}>
+                  <img
+                    src={service3Image}
+                    alt="Massage"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
-                <div className="rounded-xl overflow-hidden h-40 md:h-64">
-                  <img src={testimonialImage} alt="KEYNA SPA" className="w-full h-full object-cover" />
+                <div className="rounded-xl overflow-hidden h-40 md:h-64 animate-float" style={{ animationDelay: '3s' }}>
+                  <img
+                    src={testimonialImage}
+                    alt="Expérience client"
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
               </div>
             </div>
@@ -184,124 +268,85 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-primary">
-        <div className="container">
+      <section className="py-16 bg-gradient-to-r from-primary to-primary-dark">
+        <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center text-white">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
-              Prêt à Vous Offrir un Moment de Détente ?</h2>
-            <p className="text-xl mb-8 text-gray-100">
-              Réservez dès maintenant votre séance et bénéficiez de notre offre de bienvenue : 15% de réduction sur votre première visite.
+            <h2
+              className="text-3xl md:text-4xl font-serif font-bold mb-4 animate__animated animate__fadeIn"
+            >
+              Offrez-vous une Pause Mémorable
+            </h2>
+            <p
+              className="text-xl mb-8 text-white/90 animate__animated animate__fadeIn animate__delay-1s"
+            >
+              Profitez de notre offre exclusive : <strong>15% de réduction</strong> sur votre première visite. Réservez dès maintenant !
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/booking" className="btn bg-white text-primary hover:bg-gray-100">
-                <FiCalendar className="inline-block mr-2" /> Réserver un Soin
+            <div className="flex flex-wrap gap-4 justify-center animate__animated animate__fadeIn animate__delay-2s">
+              <Link
+                to="/booking"
+                className="btn bg-accent text-white hover:bg-accent-dark flex items-center px-6 py-3 rounded-xl animate-pulse"
+                aria-label="Réserver une séance"
+              >
+                <FiCalendar className="mr-2" /> Réserver un Soin
               </Link>
-              <Link to="/shop" className="btn bg-accent text-white hover:bg-accent-dark">
-                <FiShoppingBag className="inline-block mr-2" /> Explorer la Boutique
+              <Link
+                to="/shop"
+                className="btn bg-white text-primary hover:bg-gray-100 flex items-center px-6 py-3 rounded-xl"
+                aria-label="Explorer la boutique"
+              >
+                <FiShoppingBag className="mr-2" /> Explorer la Boutique
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="section bg-white">
-        <div className="container">
-          <h2 className="section-title">Ce Que Disent Nos Clients</h2>
-          <p className="section-subtitle">
-            Découvrez les témoignages de nos clients qui ont vécu l'expérience KEYNA SPA.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
-            {/* Testimonial 1 */}
-            <div className="card p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-primary">
-                  <span className="font-serif text-xl">S</span>
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-medium">Sophie L.</h4>
-                  <div className="flex text-accent">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600 italic">
-                "Une expérience inoubliable ! Le massage aux pierres chaudes était parfait, et le personnel est d'une gentillesse remarquable. Je reviendrai très bientôt !"
-              </p>
-            </div>
-
-            {/* Testimonial 2 */}
-            <div className="card p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-primary">
-                  <span className="font-serif text-xl">M</span>
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-medium">Marc D.</h4>
-                  <div className="flex text-accent">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600 italic">
-                "J'ai offert à ma femme une journée complète au spa pour notre anniversaire de mariage. Elle en est revenue complètement métamorphosée. Un grand merci à toute l'équipe !"
-              </p>
-            </div>
-
-            {/* Testimonial 3 */}
-            <div className="card p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-primary">
-                  <span className="font-serif text-xl">L</span>
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-medium">Laura B.</h4>
-                  <div className="flex text-accent">
-                    <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600 italic">
-                "Les soins du visage sont exceptionnels ! Ma peau n'a jamais été aussi éclatante. Le cadre est magnifique et l'atmosphère est vraiment relaxante."
-              </p>
-            </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <Link to="/testimonials" className="btn btn-outline">
-              Voir tous les témoignages
-            </Link>
           </div>
         </div>
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container">
+      <section className="py-16 bg-neutral">
+        <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl font-serif font-bold mb-4">Restez Informé</h2>
-            <p className="text-gray-600 mb-8">
-              Inscrivez-vous à notre newsletter pour recevoir nos offres spéciales et actualités.
+            <h2
+              className="text-3xl font-serif font-bold text-neutral-dark mb-4 animate__animated animate__fadeIn"
+            >
+              Rejoignez Notre Univers
+            </h2>
+            <p
+              className="text-neutral-dark/80 mb-8 animate__animated animate__fadeIn animate__delay-1s"
+            >
+              Inscrivez-vous à notre newsletter pour des offres exclusives et des conseils bien-être.
             </p>
 
-            <form className="flex max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Votre adresse email"
-                className="flex-grow px-4 py-3 rounded-l-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-primary text-white px-6 py-3 rounded-r-full hover:bg-primary-dark transition duration-300"
+            {newsletterSubmitted ? (
+              <p className="text-accent font-medium animate__animated animate__fadeIn">
+                Merci pour votre inscription ! Vérifiez votre boîte de réception.
+              </p>
+            ) : (
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex max-w-md mx-auto shadow-soft rounded-full overflow-hidden animate__animated animate__fadeIn animate__delay-2s"
               >
-                S'inscrire
-              </button>
-            </form>
+                <input
+                  type="email"
+                  placeholder="Votre adresse email"
+                  className="flex-grow px-4 py-3 border-none focus:outline-none focus:ring-2 focus:ring-accent"
+                  required
+                  aria-label="Adresse email pour la newsletter"
+                />
+                <button
+                  type="submit"
+                  className="bg-accent text-white px-6 py-3 hover:bg-accent-dark transition duration-300"
+                  aria-label="S’inscrire à la newsletter"
+                >
+                  S’inscrire
+                </button>
+              </form>
+            )}
 
-            <p className="text-sm text-gray-500 mt-4">
-              En vous inscrivant, vous acceptez de recevoir nos emails et confirmez avoir lu notre politique de confidentialité.
+            <p className="text-sm text-neutral-dark/60 mt-4 animate__animated animate__fadeIn animate__delay-3s">
+              En vous inscrivant, vous acceptez notre{' '}
+              <Link to="/privacy" className="underline hover:text-primary">
+                politique de confidentialité
+              </Link>.
             </p>
           </div>
         </div>

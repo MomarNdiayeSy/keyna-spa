@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Header from './Header';
+import Navbar from './Navbar';
 import Footer from './Footer';
 
 const Layout = ({ children }) => {
-    const [headerHeight, setHeaderHeight] = useState(64); // Hauteur initiale par défaut (4rem)
+    const [headerHeight, setHeaderHeight] = useState(48); // Hauteur initiale réduite
 
     useEffect(() => {
         const updateInitialHeight = () => {
-            const initialHeight = 64; // Correspond à py-4 + h-12
+            const initialHeight = 48; // Correspond à la nouvelle hauteur
             setHeaderHeight(initialHeight);
         };
         updateInitialHeight();
@@ -15,7 +15,7 @@ const Layout = ({ children }) => {
 
     return (
         <div className="flex flex-col min-h-screen" style={{ margin: 0, padding: 0 }}>
-            <Header onHeightChange={(height) => setHeaderHeight(height)} />
+            <Navbar onHeightChange={(height) => setHeaderHeight(height)} />
             <main className="flex-grow" style={{ marginTop: `${headerHeight}px`, padding: 0 }}>
                 {children}
             </main>

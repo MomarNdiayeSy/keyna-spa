@@ -12,23 +12,27 @@ const CartModal = ({ product, isOpen, onClose }) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
+                alert('Veuillez vous connecter pour ajouter au panier.');
                 onClose();
                 return;
             }
-            await axios.post(
+            const response = await axios.post(
                 'http://localhost:5000/api/cart',
                 { productId: product.id, quantity },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            console.log('Article ajouté au panier:', response.data);
             await updateCartCount();
+            alert('Produit ajouté au panier avec succès !');
             onClose();
         } catch (error) {
             console.error('Erreur lors de l’ajout au panier:', error);
+            alert('Erreur lors de l’ajout au panier. Veuillez réessayer.');
         }
     };
 
     const handleQuantityChange = (newQuantity) => {
-        if (newQuantity < 1) return; // Empêche une quantité inférieure à 1
+        if (newQuantity < 1) return;
         setQuantity(newQuantity);
     };
 
