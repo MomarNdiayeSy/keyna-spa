@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import io from 'socket.io-client';
 
 const BookingsManagement = () => {
     const [bookings, setBookings] = useState([]);
     const [services, setServices] = useState([]);
     const [tariffs, setTariffs] = useState([]);
     const [users, setUsers] = useState([]);
+    const [selectedServiceId, setSelectedServiceId] = useState('');
     const [newBooking, setNewBooking] = useState({
         tariff_id: '',
         date_time: '',
@@ -19,6 +21,7 @@ const BookingsManagement = () => {
     });
     const [editingBooking, setEditingBooking] = useState(null);
     const [error, setError] = useState('');
+    const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -35,6 +38,36 @@ const BookingsManagement = () => {
         } catch (err) {
             navigate('/login');
         }
+
+        // Établir la connexion Socket.IO
+        const socket = io('http://localhost:5000', {
+            auth: { token },
+        });
+
+        socket.on('connect', () => {
+            console.log('Connecté au serveur Socket.IO');
+        });
+
+        socket.on('newBooking', (booking) => {
+            setNotifications((prev) => [
+                ...prev,
+                {
+                    id: Date.now(),
+                    message: `Nouvelle réservation par ${booking.customer_name} pour ${booking.service_name} (${booking.tariff_name}) le ${new Date(booking.date_time).toLocaleString('fr-FR')}`,
+                    booking,
+                },
+            ]);
+            // Mettre à jour la liste des réservations
+            setBookings((prev) => [...prev, booking]);
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('Erreur de connexion Socket.IO:', err.message);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
     }, [navigate]);
 
     useEffect(() => {
@@ -53,16 +86,8 @@ const BookingsManagement = () => {
                     }),
                 ]);
 
-                let tariffsRes = { data: [] };
-                if (servicesRes.data.length > 0) {
-                    tariffsRes = await axios.get(`http://localhost:5000/api/tariffs/${servicesRes.data[0].id}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                }
-
                 setBookings(bookingsRes.data);
                 setServices(servicesRes.data);
-                setTariffs(tariffsRes.data);
                 setUsers(usersRes.data);
                 setError('');
             } catch (err) {
@@ -73,13 +98,41 @@ const BookingsManagement = () => {
         fetchData();
     }, []);
 
+    useEffect(() => {
+        const fetchTariffs = async () => {
+            if (selectedServiceId) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const tariffsRes = await axios.get(`http://localhost:5000/api/tariffs/${selectedServiceId}`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setTariffs(tariffsRes.data);
+                } catch (err) {
+                    setError('Erreur lors de la récupération des tarifs.');
+                    console.error('Erreur:', err);
+                }
+            } else {
+                setTariffs([]);
+            }
+        };
+        fetchTariffs();
+    }, [selectedServiceId]);
+
     const handleAddBooking = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/api/bookings', newBooking, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            const token = localStorage.getItem('token');
+            const response = await axios.post('http://localhost:5000/api/bookings', {
+                ...newBooking,
+                date_time: newBooking.date_time ? new Date(newBooking.date_time).toISOString() : null,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            setBookings([...bookings, response.data.booking]);
+            setBookings([...bookings, {
+                ...response.data,
+                service_name: services.find(s => s.id === tariffs.find(t => t.id === parseInt(newBooking.tariff_id))?.service_id)?.name,
+                tariff_name: tariffs.find(t => t.id === parseInt(newBooking.tariff_id))?.name,
+            }]);
             setNewBooking({
                 tariff_id: '',
                 date_time: '',
@@ -89,6 +142,7 @@ const BookingsManagement = () => {
                 user_id: '',
                 status: 'pending',
             });
+            setSelectedServiceId('');
             setError('');
         } catch (err) {
             setError(err.response?.data?.error || 'Erreur lors de l’ajout de la réservation.');
@@ -99,11 +153,20 @@ const BookingsManagement = () => {
     const handleEditBooking = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.put(`http://localhost:5000/api/bookings/${editingBooking.id}`, editingBooking, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            const token = localStorage.getItem('token');
+            const response = await axios.put(`http://localhost:5000/api/bookings/${editingBooking.id}`, {
+                ...editingBooking,
+                date_time: editingBooking.date_time ? new Date(editingBooking.date_time).toISOString() : null,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            setBookings(bookings.map((b) => (b.id === editingBooking.id ? response.data : b)));
+            setBookings(bookings.map((b) => (b.id === editingBooking.id ? {
+                ...response.data,
+                service_name: services.find(s => s.id === tariffs.find(t => t.id === parseInt(response.data.tariff_id))?.service_id)?.name,
+                tariff_name: tariffs.find(t => t.id === parseInt(response.data.tariff_id))?.name,
+            } : b)));
             setEditingBooking(null);
+            setSelectedServiceId('');
             setError('');
         } catch (err) {
             setError(err.response?.data?.error || 'Erreur lors de la modification de la réservation.');
@@ -113,8 +176,9 @@ const BookingsManagement = () => {
 
     const handleDeleteBooking = async (id) => {
         try {
+            const token = localStorage.getItem('token');
             await axios.delete(`http://localhost:5000/api/bookings/${id}`, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                headers: { Authorization: `Bearer ${token}` },
             });
             setBookings(bookings.filter((b) => b.id !== id));
             setError('');
@@ -124,9 +188,13 @@ const BookingsManagement = () => {
         }
     };
 
+    const removeNotification = (id) => {
+        setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+    };
+
     return (
         <section className="min-h-screen bg-gray-50 py-12">
-            <div className="container mx-auto px-4">
+            <div className="container mx-auto px-4 relative">
                 <h2 className="text-3xl font-serif font-bold mb-8 text-center text-primary-dark">Gestion des Réservations</h2>
 
                 {error && (
@@ -135,19 +203,55 @@ const BookingsManagement = () => {
                     </div>
                 )}
 
+                {/* Notifications Toast */}
+                <div className="fixed top-4 right-4 z-50 space-y-2">
+                    {notifications.map((notif) => (
+                        <div
+                            key={notif.id}
+                            className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-xl shadow-lg flex items-center justify-between max-w-sm"
+                            onMouseEnter={() => clearTimeout(notif.timeoutId)}
+                            onMouseLeave={() => {
+                                notif.timeoutId = setTimeout(() => removeNotification(notif.id), 5000);
+                            }}
+                        >
+                            <span>{notif.message}</span>
+                            <button
+                                onClick={() => removeNotification(notif.id)}
+                                className="ml-4 text-green-700 hover:text-green-900"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                </div>
+
                 <form onSubmit={handleAddBooking} className="mb-12 bg-white p-6 rounded-xl shadow-soft">
                     <h3 className="text-xl font-semibold mb-4 text-primary-dark">Ajouter une Réservation</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <select
+                            value={selectedServiceId}
+                            onChange={(e) => setSelectedServiceId(e.target.value)}
+                            className="p-3 border border-neutral-light rounded-xl"
+                            required
+                        >
+                            <option value="">Sélectionner un service</option>
+                            {services.map((service) => (
+                                <option key={service.id} value={service.id}>
+                                    {service.name}
+                                </option>
+                            ))}
+                        </select>
                         <select
                             value={newBooking.tariff_id}
                             onChange={(e) => setNewBooking({ ...newBooking, tariff_id: e.target.value })}
                             className="p-3 border border-neutral-light rounded-xl"
                             required
+                            disabled={!selectedServiceId}
                         >
                             <option value="">Sélectionner une option</option>
                             {tariffs.map((tariff) => (
                                 <option key={tariff.id} value={tariff.id}>
-                                    {services.find((s) => s.id === tariff.service_id)?.name} - {tariff.name}
+                                    {tariff.name} ({parseFloat(tariff.price).toFixed(2)} €, {tariff.duration})
                                 </option>
                             ))}
                         </select>
@@ -226,16 +330,19 @@ const BookingsManagement = () => {
                         <tbody>
                             {bookings.map((booking) => (
                                 <tr key={booking.id} className="border-b">
-                                    <td className="p-3">{booking.service_name}</td>
-                                    <td className="p-3">{booking.tariff_name}</td>
-                                    <td className="p-3">{new Date(booking.date_time).toLocaleString()}</td>
+                                    <td className="p-3">{booking.service_name || 'N/A'}</td>
+                                    <td className="p-3">{booking.tariff_name || 'N/A'}</td>
+                                    <td className="p-3">{new Date(booking.date_time).toLocaleString('fr-FR')}</td>
                                     <td className="p-3">{booking.customer_name}</td>
                                     <td className="p-3">{booking.customer_email}</td>
                                     <td className="p-3">{booking.customer_phone || 'N/A'}</td>
                                     <td className="p-3">{booking.status}</td>
                                     <td className="p-3">
                                         <button
-                                            onClick={() => setEditingBooking(booking)}
+                                            onClick={() => {
+                                                setEditingBooking(booking);
+                                                setSelectedServiceId(tariffs.find(t => t.id === parseInt(booking.tariff_id))?.service_id || '');
+                                            }}
                                             className="text-blue-500 hover:underline mr-4"
                                         >
                                             Modifier
@@ -259,14 +366,29 @@ const BookingsManagement = () => {
                             <h3 className="text-lg font-semibold mb-4 text-primary-dark">Modifier la Réservation</h3>
                             <form onSubmit={handleEditBooking}>
                                 <select
+                                    value={selectedServiceId}
+                                    onChange={(e) => setSelectedServiceId(e.target.value)}
+                                    className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                    required
+                                >
+                                    <option value="">Sélectionner un service</option>
+                                    {services.map((service) => (
+                                        <option key={service.id} value={service.id}>
+                                            {service.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
                                     value={editingBooking.tariff_id}
                                     onChange={(e) => setEditingBooking({ ...editingBooking, tariff_id: e.target.value })}
                                     className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                    required
+                                    disabled={!selectedServiceId}
                                 >
                                     <option value="">Sélectionner une option</option>
                                     {tariffs.map((tariff) => (
                                         <option key={tariff.id} value={tariff.id}>
-                                            {services.find((s) => s.id === tariff.service_id)?.name} - {tariff.name}
+                                            {tariff.name} ({parseFloat(tariff.price).toFixed(2)} €, {tariff.duration})
                                         </option>
                                     ))}
                                 </select>
@@ -279,18 +401,21 @@ const BookingsManagement = () => {
                                     }
                                     onChange={(e) => setEditingBooking({ ...editingBooking, date_time: e.target.value })}
                                     className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                    required
                                 />
                                 <input
                                     type="text"
                                     value={editingBooking.customer_name}
                                     onChange={(e) => setEditingBooking({ ...editingBooking, customer_name: e.target.value })}
                                     className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                    required
                                 />
                                 <input
                                     type="email"
                                     value={editingBooking.customer_email}
                                     onChange={(e) => setEditingBooking({ ...editingBooking, customer_email: e.target.value })}
                                     className="p-3 border border-neutral-light rounded-xl w-full mb-4"
+                                    required
                                 />
                                 <input
                                     type="tel"
@@ -323,7 +448,10 @@ const BookingsManagement = () => {
                                 <div className="flex justify-end space-x-4">
                                     <button
                                         type="button"
-                                        onClick={() => setEditingBooking(null)}
+                                        onClick={() => {
+                                            setEditingBooking(null);
+                                            setSelectedServiceId('');
+                                        }}
                                         className="px-4 py-2 bg-neutral-light rounded-xl hover:bg-neutral-dark hover:text-white"
                                     >
                                         Annuler

@@ -1,8 +1,8 @@
-// frontend/src/components/common/Footer.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiFacebook, FiInstagram, FiTwitter, FiMapPin, FiPhone, FiMail, FiClock } from 'react-icons/fi';
-import logo from '../../assets/logo.png'; // Assurez-vous d'avoir un logo dans vos assets
+import { FiFacebook, FiInstagram, FiMapPin, FiPhone, FiMail, FiClock } from 'react-icons/fi';
+import { FaTiktok } from 'react-icons/fa';
+import logo from '../../assets/logo.png';
 
 const Footer = () => {
   return (
@@ -20,14 +20,14 @@ const Footer = () => {
               Découvrez nos services de qualité pour revitaliser votre corps et votre esprit.
             </p>
             <div className="flex space-x-4 pt-2">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-200 transition-colors">
+              <a href="https://www.facebook.com/KeynaSpa/?locale=fr_FR" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-200 transition-colors">
                 <FiFacebook size={20} />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-200 transition-colors">
+              <a href="https://www.instagram.com/keynaspa/?hl=fr" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-200 transition-colors">
                 <FiInstagram size={20} />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-200 transition-colors">
-                <FiTwitter size={20} />
+              <a href="https://www.tiktok.com/@keynaspa" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-200 transition-colors">
+                <FaTiktok size={20} />
               </a>
             </div>
           </div>
@@ -104,7 +104,7 @@ const Footer = () => {
 
         <div className="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-100">
-            &copy; {new Date().getFullYear()} KEYNA SPA. Tous droits réservés.
+            © {new Date().getFullYear()} KEYNA SPA. Tous droits réservés.
           </p>
           <div className="flex space-x-4 mt-4 md:mt-0">
             <Link to="/privacy-policy" className="text-sm text-gray-100 hover:text-white">
