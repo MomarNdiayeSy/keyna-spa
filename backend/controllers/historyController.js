@@ -10,9 +10,9 @@ exports.getHistory = async (req, res) => {
   try {
     // Récupérer les réservations
     const bookings = await pool.query(
-      `SELECT b.*, s.name as service_name
+      `SELECT b.*, t.name as tariff_name
        FROM bookings b
-       JOIN services s ON b.service_id = s.id
+       JOIN tariffs t ON b.tariff_id = t.id
        WHERE b.user_id = $1
        ORDER BY b.created_at DESC`,
       [userId]

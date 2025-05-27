@@ -285,8 +285,8 @@ const NavLinks = ({
                     <Link to="/shop" className={textColor}>
                         Boutique
                     </Link>
-                    <Link to="/pricing" className={textColor}>
-                        Tarifs
+                    <Link to="/vip" className={textColor}>
+                        Espace VIP
                     </Link>
                     <div className="relative" ref={moreMenuRef}>
                         <button
@@ -308,11 +308,11 @@ const NavLinks = ({
                                 }`}
                             >
                                 <Link
-                                    to="/vip"
+                                    to="/pricing"
                                     className="block px-4 py-2 text-neutral-dark hover:bg-primary hover:text-white"
                                     onClick={toggleMoreMenu}
                                 >
-                                    Espace VIP
+                                    Tarifs
                                 </Link>
                                 <Link
                                     to="/contact"
@@ -526,11 +526,11 @@ const MobileNavLinks = ({
                         Boutique
                     </Link>
                     <Link
-                        to="/pricing"
+                        to="/vip"
                         className="text-neutral-dark hover:text-primary py-2"
                         onClick={closeMenu}
                     >
-                        Tarifs
+                        Espace VIP
                     </Link>
                     <div className="py-2">
                         <button
@@ -548,11 +548,11 @@ const MobileNavLinks = ({
                         {isMoreOpen && (
                             <div className="pl-4 mt-2 space-y-2">
                                 <Link
-                                    to="/vip"
+                                    to="/pricing"
                                     className="block text-neutral-dark hover:text-primary"
                                     onClick={closeMenu}
                                 >
-                                    Espace VIP
+                                    Tarifs
                                 </Link>
                                 <Link
                                     to="/contact"

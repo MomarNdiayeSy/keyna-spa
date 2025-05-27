@@ -1,5 +1,10 @@
 # Ignorer node_modules
    node_modules/
+   node_modules/ 
+   
+   frontend/node_modules/
+   backend/node_modules/
+   frontend/.env
 
 # Ignorer les fichiers d'environnement
    .env
@@ -35,4 +40,4 @@
    .DS_Store
 
    backend/public/uploads/
-"node_modules/" 
+

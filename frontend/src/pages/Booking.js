@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../contexts/AuthContext';
-import { loadStripe } from '@stripe/stripe-js';
 
 const Booking = () => {
     const { user } = useContext(AuthContext);
@@ -40,15 +39,13 @@ const Booking = () => {
             try {
                 const serviceResponse = await axios.get(`http://localhost:5000/api/services`);
                 const serviceData = serviceResponse.data.find(s => s.id === parseInt(serviceId));
-                if (!serviceData) {
-                    throw new Error('Service non trouvé.');
-                }
+                if (!serviceData) throw new Error('Service non trouvé.');
                 setService(serviceData);
+
                 const tariffData = serviceData.tariffs.find(t => t.id === parseInt(tariffId));
-                if (!tariffData) {
-                    throw new Error('Tarif non trouvé.');
-                }
+                if (!tariffData) throw new Error('Tarif non trouvé.');
                 setTariff(tariffData);
+
                 setLoading(false);
             } catch (error) {
                 console.error('Erreur lors de la récupération des données:', error);
@@ -56,6 +53,7 @@ const Booking = () => {
                 setLoading(false);
             }
         };
+
         if (serviceId && tariffId) {
             fetchData();
         } else {
@@ -112,30 +110,34 @@ const Booking = () => {
         setSuccess(null);
 
         try {
-            const stripeKey = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY;
-            if (!stripeKey) {
-                throw new Error('Clé publique Stripe non définie. Vérifiez votre fichier .env dans le dossier frontend.');
-            }
-            const stripe = await loadStripe(stripeKey);
-            if (!stripe) {
-                throw new Error('Échec de l’initialisation de Stripe.');
-            }
+            const dateTime = `${formData.date} ${formData.time}`;
 
-            const dateTime = `${formData.date}T${formData.time}:00`;
-            const response = await axios.post('http://localhost:5000/api/bookings', {
-                tariff_id: formData.tariffId,
-                date_time: dateTime,
-                customer_name: formData.name,
-                customer_email: formData.email,
-                customer_phone: formData.customer_phone,
-                user_id: user.userId,
-                discount_code: formData.discount_code.toUpperCase() || null,
-            }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            await axios.post(
+                'http://localhost:5000/api/bookings',
+                {
+                    tariff_id: formData.tariffId,
+                    date_time: dateTime,
+                    customer_name: formData.name,
+                    customer_email: formData.email,
+                    customer_phone: formData.customer_phone,
+                    user_id: user.userId,
+                    discount_code: formData.discount_code.toUpperCase() || null,
+                },
+                {
+                    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+                }
+            );
+
+            setSuccess('Réservation créée avec succès !');
+            setFormData({
+                tariffId: formData.tariffId,
+                date: '',
+                time: '',
+                name: user ? user.name : '',
+                email: user ? user.email : '',
+                customer_phone: user ? user.phone_number : '',
+                discount_code: '',
             });
-
-            await stripe.redirectToCheckout({ sessionId: response.data.sessionId });
-            setSuccess('Redirection vers le paiement...');
         } catch (error) {
             console.error('Erreur lors de la réservation:', error);
             setError(error.message || error.response?.data?.error || 'Échec de la réservation.');
@@ -172,19 +174,17 @@ const Booking = () => {
                     </div>
                 )}
 
-                {service && tariff ? (
+                {service && tariff && (
                     <div className="bg-white p-6 rounded-xl shadow-soft mb-6">
                         <h3 className="text-2xl font-serif text-primary-dark mb-2">{service.name}</h3>
                         <p className="text-accent font-semibold">{tariff.name} - {parseFloat(tariff.price).toFixed(2)} € ({tariff.duration})</p>
                         <p className="text-secondary-dark">{service.description}</p>
                     </div>
-                ) : null}
+                )}
 
                 <form onSubmit={handleSubmit} className="max-w-lg mx-auto bg-white p-6 rounded-xl shadow-soft">
                     <div className="mb-6">
-                        <label htmlFor="date" className="block text-sm font-semibold text-primary-dark mb-2">
-                            Date
-                        </label>
+                        <label htmlFor="date" className="block text-sm font-semibold text-primary-dark mb-2">Date</label>
                         <input
                             type="date"
                             id="date"
@@ -198,9 +198,7 @@ const Booking = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="time" className="block text-sm font-semibold text-primary-dark mb-2">
-                            Heure
-                        </label>
+                        <label htmlFor="time" className="block text-sm font-semibold text-primary-dark mb-2">Heure</label>
                         <select
                             id="time"
                             name="time"
@@ -235,9 +233,7 @@ const Booking = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="name" className="block text-sm font-semibold text-primary-dark mb-2">
-                            Nom
-                        </label>
+                        <label htmlFor="name" className="block text-sm font-semibold text-primary-dark mb-2">Nom</label>
                         <input
                             type="text"
                             id="name"
@@ -250,9 +246,7 @@ const Booking = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="email" className="block text-sm font-semibold text-primary-dark mb-2">
-                            Email
-                        </label>
+                        <label htmlFor="email" className="block text-sm font-semibold text-primary-dark mb-2">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -265,9 +259,7 @@ const Booking = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="customer_phone" className="block text-sm font-semibold text-primary-dark mb-2">
-                            Numéro de téléphone
-                        </label>
+                        <label htmlFor="customer_phone" className="block text-sm font-semibold text-primary-dark mb-2">Numéro de téléphone</label>
                         <input
                             type="text"
                             id="customer_phone"
@@ -280,9 +272,7 @@ const Booking = () => {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="discount_code" className="block text-sm font-semibold text-primary-dark mb-2">
-                            Code Promo
-                        </label>
+                        <label htmlFor="discount_code" className="block text-sm font-semibold text-primary-dark mb-2">Code Promo</label>
                         <input
                             type="text"
                             id="discount_code"
@@ -299,7 +289,7 @@ const Booking = () => {
                         className="w-full bg-accent text-white py-3 rounded-xl hover:bg-accent-dark transition"
                         disabled={loading || !formData.date || !formData.time}
                     >
-                        Confirmer et payer
+                        Confirmer la réservation
                     </button>
                 </form>
             </div>
